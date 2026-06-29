@@ -41,6 +41,9 @@ const api = {
     rescore: () => invoke(CH.opportunities.rescore),
     openJson: (id: number) => invoke(CH.opportunities.openJson, id),
     openFreelasDir: () => invoke(CH.opportunities.openFreelasDir),
+    listPropostas: () => invoke(CH.opportunities.listPropostas),
+    readProposta: (filePath: string) => invoke(CH.opportunities.readProposta, filePath),
+    deleteProposta: (filePath: string) => invoke(CH.opportunities.deleteProposta, filePath),
   },
   sites: {
     list: () => invoke(CH.sites.list),

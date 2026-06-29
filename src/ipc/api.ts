@@ -80,6 +80,18 @@ export interface ScrapperResult {
   error?: string;
 }
 
+/** Proposta = markdown único gerado pelo time de agentes para uma vaga, lido de {workspace}/oportunidades/. */
+export interface Proposta {
+  opportunityId: number;
+  fileName: string;
+  filePath: string;
+  title: string;
+  budgetLine: string;
+  tags: string[];
+  sourceUrl: string | null;
+  generatedAt: string | null;
+}
+
 interface FreelaApi {
   agents: {
     list: () => Promise<Agent[]>;
@@ -116,6 +128,9 @@ interface FreelaApi {
     }>;
     openJson: (id: number) => Promise<{ ok: boolean; path?: string; error?: string }>;
     openFreelasDir: () => Promise<{ ok: boolean; path?: string; error?: string }>;
+    listPropostas: () => Promise<Proposta[]>;
+    readProposta: (filePath: string) => Promise<{ ok: boolean; content?: string; error?: string }>;
+    deleteProposta: (filePath: string) => Promise<{ ok: boolean; error?: string }>;
   };
   sites: {
     list: () => Promise<MonitoredSite[]>;

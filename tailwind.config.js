@@ -1,3 +1,5 @@
+import typography from '@tailwindcss/typography';
+
 /** @type {import('tailwindcss').Config} */
 const rgb = (cssVar) => `rgb(var(${cssVar}) / <alpha-value>)`;
 
@@ -110,5 +112,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };

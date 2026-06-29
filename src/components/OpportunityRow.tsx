@@ -4,7 +4,7 @@ import { ExternalLink, FileJson, X } from 'lucide-react';
 import { TagChip } from './TagChip';
 import { PlatformIcon } from './PlatformIcon';
 import { api } from '../ipc/api';
-import { formatBudgetBRL, relativeTime, safeParseJson } from '../lib/utils';
+import { formatBudgetBRL, relativeTime, safeParseJson, guessPlatformFromUrl, prettyPlatform } from '../lib/utils';
 import type { Opportunity, MonitoredSite } from '../types';
 
 interface OpportunityRowProps {
@@ -220,23 +220,3 @@ function OpportunityDetailModal({
   );
 }
 
-function guessPlatformFromUrl(url: string): string {
-  if (!url) return 'unknown';
-  if (url.includes('workana')) return 'workana';
-  if (url.includes('99freelas')) return '99freelas';
-  if (url.includes('freelancer')) return 'freelancer';
-  if (url.includes('upwork')) return 'upwork';
-  if (url.includes('remoteok')) return 'remoteok';
-  return 'unknown';
-}
-
-function prettyPlatform(slug: string): string {
-  const m: Record<string, string> = {
-    workana: 'Workana',
-    '99freelas': '99Freelas',
-    freelancer: 'Freelancer.com',
-    upwork: 'Upwork',
-    remoteok: 'RemoteOK',
-  };
-  return m[slug] ?? slug;
-}

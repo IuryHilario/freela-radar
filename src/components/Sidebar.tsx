@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-type Page = 'radar' | 'scrapper' | 'agentes' | 'pipeline' | 'tasks' | 'settings';
+type Page = 'radar' | 'scrapper' | 'agentes' | 'pipeline' | 'tasks' | 'settings' | 'propostas';
 
 interface SidebarProps {
   page: Page;
@@ -37,6 +37,8 @@ type NavEntry =
 
 const NAV_ENTRIES: NavEntry[] = [
   { type: 'item', key: 'radar', label: 'Radar', icon: Radar },
+  { type: 'separator', label: 'resultados' },
+  { type: 'item', key: 'propostas', label: 'Propostas', icon: ChevronRight },
   { type: 'separator', label: 'scrapping' },
   { type: 'item', key: 'scrapper', label: 'Scrapper', icon: ScanLine },
   { type: 'separator', label: 'agentes' },

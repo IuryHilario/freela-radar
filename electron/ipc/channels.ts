@@ -28,6 +28,9 @@ export const CH = {
     rescore: 'opportunities:rescore',
     openJson: 'opportunities:openJson',
     openFreelasDir: 'opportunities:openFreelasDir',
+    listPropostas: 'opportunities:listPropostas',
+    readProposta: 'opportunities:readProposta',
+    deleteProposta: 'opportunities:deleteProposta',
   },
   sites: {
     list: 'sites:list',

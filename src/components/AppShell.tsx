@@ -11,11 +11,12 @@ import { PipelinePage } from '../pages/PipelinePage';
 import { TasksPage } from '../pages/TasksPage';
 import { ScrapperPage } from '../pages/ScrapperPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { PropostasPage } from '../pages/PropostasPage';
 import { api } from '../ipc/api';
 import { useRadarStore } from '../store/useRadarStore';
 import type { AppConfig } from '../types';
 
-type Page = 'radar' | 'scrapper' | 'agentes' | 'pipeline' | 'tasks' | 'settings';
+type Page = 'radar' | 'scrapper' | 'agentes' | 'pipeline' | 'tasks' | 'settings' | 'propostas';
 
 const SIDEBAR_STORAGE_KEY = 'free-hub:sidebar-collapsed';
 
@@ -112,6 +113,7 @@ export function AppShell({ animateEntrance = true }: { animateEntrance?: boolean
           {page === 'radar' && (
             <RadarPage onNavigate={navigate} onOpenAgent={openAgentInEditor} />
           )}
+          {page === 'propostas' && <PropostasPage />}
           {page === 'agentes' && <AgentsPage initialAgentId={pendingAgentId} />}
           {page === 'pipeline' && <PipelinePage />}
           {page === 'tasks' && <TasksPage />}

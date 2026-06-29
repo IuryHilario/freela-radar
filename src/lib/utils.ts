@@ -55,3 +55,24 @@ export function safeParseJson<T>(input: string | null | undefined, fallback: T):
   if (!input) return fallback;
   try { return JSON.parse(input) as T; } catch { return fallback; }
 }
+
+export function guessPlatformFromUrl(url: string | null | undefined): string {
+  if (!url) return 'unknown';
+  if (url.includes('workana')) return 'workana';
+  if (url.includes('99freelas')) return '99freelas';
+  if (url.includes('freelancer')) return 'freelancer';
+  if (url.includes('upwork')) return 'upwork';
+  if (url.includes('remoteok')) return 'remoteok';
+  return 'unknown';
+}
+
+export function prettyPlatform(slug: string): string {
+  const m: Record<string, string> = {
+    workana: 'Workana',
+    '99freelas': '99Freelas',
+    freelancer: 'Freelancer.com',
+    upwork: 'Upwork',
+    remoteok: 'RemoteOK',
+  };
+  return m[slug] ?? slug;
+}

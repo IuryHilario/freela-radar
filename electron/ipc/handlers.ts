@@ -75,6 +75,70 @@ function readClassifiedFreelas(opts?: { limit?: number }): {
   };
 }
 
+interface PropostaSummary {
+  opportunityId: number;
+  fileName: string;
+  filePath: string;
+  title: string;
+  budgetLine: string;
+  tags: string[];
+  sourceUrl: string | null;
+  generatedAt: string | null;
+}
+
+/** Lê os campos do bloco de metadados gravado por `TeamPipeline.buildMarkdown`. */
+function parsePropostaFile(dir: string, fileName: string): PropostaSummary | null {
+  const idMatch = fileName.match(/^(\d+)_/);
+  if (!idMatch) return null;
+  const filePath = path.join(dir, fileName);
+  let content: string;
+  try {
+    content = fs.readFileSync(filePath, 'utf-8');
+  } catch {
+    return null;
+  }
+  const lines = content.split('\n');
+  const title = (lines[0] ?? '').replace(/^#\s*/, '').trim() || fileName;
+  const findField = (label: string): string | null => {
+    const line = lines.find((l) => l.trim().startsWith(`- **${label}:**`));
+    return line ? line.replace(`- **${label}:**`, '').trim() : null;
+  };
+  const tagsRaw = findField('Tags');
+  return {
+    opportunityId: Number(idMatch[1]),
+    fileName,
+    filePath,
+    title,
+    budgetLine: findField('Orçamento') ?? '—',
+    tags: tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : [],
+    sourceUrl: findField('Origem'),
+    generatedAt: findField('Gerado em'),
+  };
+}
+
+/**
+ * Lista as propostas (markdown único por vaga) gravadas em
+ * {workspace}/oportunidades/ pelo TeamPipeline. Quando o time roda mais de uma
+ * vez pra mesma vaga, mantém só o arquivo mais recente (por mtime).
+ */
+function readPropostas(): PropostaSummary[] {
+  const dir = getOportunidadesDir();
+  const files = fs.readdirSync(dir).filter((f) => f.toLowerCase().endsWith('.md'));
+  const latestByOpp = new Map<number, { summary: PropostaSummary; mtimeMs: number }>();
+  for (const f of files) {
+    const summary = parsePropostaFile(dir, f);
+    if (!summary) continue;
+    const mtimeMs = fs.statSync(summary.filePath).mtimeMs;
+    const existing = latestByOpp.get(summary.opportunityId);
+    if (!existing || mtimeMs > existing.mtimeMs) {
+      latestByOpp.set(summary.opportunityId, { summary, mtimeMs });
+    }
+  }
+  return [...latestByOpp.values()]
+    .sort((a, b) => b.mtimeMs - a.mtimeMs)
+    .map((v) => v.summary);
+}
+
 export function registerIpcHandlers(getMainWindow: () => BrowserWindow | null) {
   // --- Agents ---
   ipcMain.handle(CH.agents.list, () => {
@@ -420,6 +484,48 @@ export function registerIpcHandlers(getMainWindow: () => BrowserWindow | null) {
       const msg = (e as Error).message;
       console.warn('[handlers] openFreelasDir exception:', msg);
       return { ok: false, error: msg };
+    }
+  });
+
+  // Lista as propostas (markdown único por vaga) geradas pelo time de agentes
+  // em {workspace}/oportunidades/ — usado pela aba Propostas.
+  ipcMain.handle(CH.opportunities.listPropostas, () => {
+    try {
+      return readPropostas();
+    } catch (e) {
+      console.warn('[handlers] listPropostas falhou:', (e as Error).message);
+      return [];
+    }
+  });
+
+  // Lê o conteúdo de uma proposta pelo caminho do arquivo. Restrito à pasta
+  // {workspace}/oportunidades/ pra não permitir leitura arbitrária de disco.
+  ipcMain.handle(CH.opportunities.readProposta, (_e, filePath: string) => {
+    try {
+      const dir = path.resolve(getOportunidadesDir());
+      const resolved = path.resolve(filePath);
+      if (resolved !== dir && !resolved.startsWith(dir + path.sep)) {
+        return { ok: false, error: 'Caminho fora da pasta de oportunidades.' };
+      }
+      const content = fs.readFileSync(resolved, 'utf-8');
+      return { ok: true, content };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+  });
+
+  // Exclui o arquivo .md de uma proposta. Restrito à pasta oportunidades/.
+  ipcMain.handle(CH.opportunities.deleteProposta, (_e, filePath: string) => {
+    try {
+      const dir = path.resolve(getOportunidadesDir());
+      const resolved = path.resolve(filePath);
+      if (resolved !== dir && !resolved.startsWith(dir + path.sep)) {
+        return { ok: false, error: 'Caminho fora da pasta de oportunidades.' };
+      }
+      fs.unlinkSync(resolved);
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
     }
   });
 
